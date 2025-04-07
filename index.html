@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Tableau de Bord</h1>
+        
+        <section id="summary">
+            <h2>Résumé des Transactions</h2>
+            <table>
+                <tr><th>Total Transactions</th><td id="total-transactions">0</td></tr>
+                <tr><th>Nombre d'inscriptions</th><td id="total-users">0</td></tr>
+            </table>
+        </section>
+
+        <section id="users">
+            <h2>Utilisateurs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Solde</th>
+                        <th>Statut</th>
+                        <th>Parrainages</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table"></tbody>
+            </table>
+        </section>
+        
+        <section id="transactions">
+            <h2>Transactions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Montant</th>
+                        <th>Type</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-table"></tbody>
+            </table>
+        </section>
+        
+        <section id="recharges">
+            <h2>Demandes de Recharge</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="recharges-table"></tbody>
+            </table>
+        </section>
+
+        <section id="stats">
+            <h2>Statistiques</h2>
+            <canvas id="statsChart"></canvas>
+        </section>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('http://localhost:8000/dashboard-data');
+            const data = await response.json();
+            
+            document.getElementById('total-transactions').textContent = data.total_transactions;
+            document.getElementById('total-users').textContent = data.total_users;
+            
+            const usersTable = document.getElementById('users-table');
+            usersTable.innerHTML = data.users.map(user => `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.balance}</td>
+                    <td>${user.status}</td>
+                    <td>${user.referrals}</td>
+                </tr>
+            `).join('');
+
+            const transactionsTable = document.getElementById('transactions-table');
+            transactionsTable.innerHTML = data.transactions.map(tx => `
+                <tr>
+                    <td>${tx.amount}</td>
+                    <td>${tx.type}</td>
+                    <td>${tx.status}</td>
+                    <td>${tx.date}</td>
+                </tr>
+            `).join('');
+
+            const rechargesTable = document.getElementById('recharges-table');
+            rechargesTable.innerHTML = data.recharges.map(rc => `
+                <tr>
+                    <td>${rc.user}</td>
+                    <td>${rc.amount}</td>
+                    <td>${rc.status}</td>
+                </tr>
+            `).join('');
+            
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Transactions', 'Utilisateurs'],
+                    datasets: [{
+                        label: 'Statistiques',
+                        data: [data.total_transactions, data.total_users],
+                        backgroundColor: ['#007BFF', '#28A745']
+                    }]
+                }
+            });
+        }
+        fetchData();
+    </script>
+</body>
+</html>

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models import User, Transaction
-from database import SessionLocal
-from auth import oauth2_scheme
+from app.models import User, Transaction
+from app.database import SessionLocal
+from app.auth import oauth2_scheme
 from jose import jwt, JWTError
+
 
 SECRET_KEY = "monsecretjwt"
 ALGORITHM = "HS256"
@@ -40,10 +41,18 @@ def deposit(amount: float, db: Session = Depends(get_db), current_user: User = D
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Le montant doit être supérieur à 0")
 
-    # Mise à jour du solde utilisateur
+    # 🔁 Mise à jour du solde
     current_user.balance += amount
+
+    # 🟡 Ce n'est pas obligatoire si current_user est déjà suivi par la session,
+    # mais ça clarifie l’intention :
+    db.add(current_user)  # 👈 Ajoute cette ligne
+
+    # 🔢 Enregistrement de la transaction
     db.add(Transaction(user_id=current_user.id, amount=amount, transaction_type="deposit"))
+
     db.commit()
+    db.refresh(current_user)  # 👈 Recharger l’objet avec les données à jour
 
     return {"message": f"Dépôt de {amount} effectué avec succès", "nouveau_solde": current_user.balance}
 
@@ -68,3 +77,4 @@ def withdraw(amount: float, db: Session = Depends(get_db), current_user: User = 
 def get_transactions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
     return transactions
+

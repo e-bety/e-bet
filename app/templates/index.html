@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.Bet - Jouez et Gagnez</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- Vérifie que le fichier existe -->
+</head>
+<body>
+    <h1>Bienvenue sur E.Bet 🎰</h1>
+    <button id="playButton">Jouer</button>
+
+    <script>
+        document.getElementById("playButton").addEventListener("click", async function() {
+            try {
+                // Appel à l'API FastAPI (modifie l'URL si nécessaire)
+                const response = await fetch("http://127.0.0.1:8000/jouer");
+                if (!response.ok) throw new Error("Réponse du serveur invalide");
+                
+                const data = await response.json();
+                alert(data.resultat); // Affiche le résultat du jeu
+            } catch (error) {
+                console.error("Erreur lors de la requête :", error);
+                alert("Erreur lors du lancement du jeu !");
+            }
+        });
+    </script>              
+</body>
+</html>

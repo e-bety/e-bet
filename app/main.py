@@ -25,9 +25,9 @@ import requests
 import logging
 import decimal
 import random
+import os
 from passlib.context import CryptContext
 
-templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 
@@ -37,6 +37,7 @@ app.include_router(payment_router, prefix="/payment")  # Assurer que payment_rou
 app.include_router(cinetpay_router, prefix="/cinetpay")  # Route pour gérer les notifications CinetPay
 app.include_router(jeu_router)
 app.include_router(transaction_router)
+templates = Jinja2Templates(directory="app/templates")
 
 # ✅ Autoriser le frontend à accéder à l'API (évite les erreurs CORS)
 app.add_middleware(
@@ -59,7 +60,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_index(request: Request):
+async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 # ✅ Route de test pour le jeu

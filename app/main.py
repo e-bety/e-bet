@@ -28,6 +28,7 @@ import random
 import os
 from passlib.context import CryptContext
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI()
 
@@ -39,7 +40,7 @@ app.include_router(jeu_router)
 app.include_router(transaction_router)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+templates = Jinja2Templates(directory="app/templates")
 
 # ✅ Autoriser le frontend à accéder à l'API (évite les erreurs CORS)
 app.add_middleware(

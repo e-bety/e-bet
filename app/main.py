@@ -37,7 +37,9 @@ app.include_router(payment_router, prefix="/payment")  # Assurer que payment_rou
 app.include_router(cinetpay_router, prefix="/cinetpay")  # Route pour gérer les notifications CinetPay
 app.include_router(jeu_router)
 app.include_router(transaction_router)
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # ✅ Autoriser le frontend à accéder à l'API (évite les erreurs CORS)
 app.add_middleware(

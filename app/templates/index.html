@@ -8,13 +8,17 @@
 </head>
 <body>
     <h1>Bienvenue sur E.Bet 🎰</h1>
+    
+    <!-- ✅ Logo ajouté ici -->
+    <img src="/static/images/logo.png" alt="Logo E.Bet" width="200" style="max-height: 150px;" />
+
     <button id="playButton">Jouer</button>
 
     <script>
         document.getElementById("playButton").addEventListener("click", async function() {
             try {
                 // Appel à l'API FastAPI (modifie l'URL si nécessaire)
-                const response = await fetch("http://127.0.0.1:8000/jouer");
+                const response = await fetch("/jouer");
                 if (!response.ok) throw new Error("Réponse du serveur invalide");
                 
                 const data = await response.json();

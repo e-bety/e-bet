@@ -61,11 +61,10 @@ def get_password_hash(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-from fastapi.responses import PlainTextResponse
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/", response_class=PlainTextResponse)
-async def read_root():
-    return "Hello depuis E.Bet backend"
 
 # ✅ Route de test pour le jeu
 @app.get("/jouer")

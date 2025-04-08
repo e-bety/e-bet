@@ -198,3 +198,16 @@ def get_referrals(current_user: User = Depends(get_current_user), db: Session = 
         "total_gains": total_bonus,
         "filleuls": [{"id": user.id, "username": user.username} for user in direct_referrals]
     }
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/game", response_class=HTMLResponse)
+async def game_page(request: Request):
+    return templates.TemplateResponse("game.html", {"request": request})
+

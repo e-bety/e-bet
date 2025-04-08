@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.Bet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: #f0f0f0; /* Fond général de la page */
+        }
+        .card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
+            background-color: #d3eaf1; /* Fond bleu clair pour la zone de jeu */
+        }
+        .input {
+            width: 80%; /* Réduction de la taille des champs de texte */
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .button {
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .button.orange {
+            background-color: #ff8c00; /* Couleur orange */
+        }
+        .button.white {
+            background-color: white;
+            color: black;
+        }
+        .button.green {
+            background-color: #28a745; /* Couleur verte */
+        }
+        .button.ablue {
+            background-color: #007bff; /* Couleur bleue pour Ajouter et Jouer */
+        }
+        .horizontal-list {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .lot {
+            background: #e3e3e3;
+            padding: 10px;
+            border-radius: 5px;
+            width: 60px;
+            text-align: center;
+            font-size: 16px;
+            position: relative;
+        }
+        .lot.winning {
+            background: red;
+            color: white;
+        }
+        .delete-button {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .result-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        /* Animation de rotation */
+        @keyframes rotateWheel {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(3600deg); /* Rotation complète de 10 tours */
+            }
+        }
+
+        .wheel {
+            display: inline-block;
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            animation: rotateWheel 3s ease-out; /* Durée de la rotation : 3 secondes */
+        }
+
+        .wheel.stopped {
+            animation: none; /* L'animation s'arrête une fois la rotation terminée */
+        }
+    </style>
+</head>
+<body>
+    <div id="gamePage" class="card">
+        <h1>E.Bet</h1>
+        <button class="button orange" onclick="checkBalance()">Solde</button>
+        <button class="button white" onclick="rechargeAccount()">Recharge</button>
+        <button class="button green" onclick="withdrawFunds()">Retrait</button>
+        <div class="horizontal-list" id="userNumbers"></div>
+        <input type="text" class="input" placeholder="Entrez vos numéros (ex: 10,23)" id="chosenNumbers">
+        <input type="number" class="input" placeholder="Mise par lot (50F minimum)" id="lotBetAmount" min="50">
+        <button class="button blue" onclick="addLot()">Ajouter le lot</button>
+        <button class="button blue" onclick="playGame()">Jouer</button>
+        <h2 id="gameResult"></h2>
+        <div class="result-group">
+            <h3>Numéros Gagnants :</h3>
+            <div id="generatedNumbersTop"></div>
+            <h3>Seconde Chance :</h3>
+            <div id="generatedNumbersBottom"></div>
+        </div>
+    </div>
+    
+    <script>
+        let userBalance = 1000;  // Solde initial de l'utilisateur
+        let selectedLots = [];    // Tableau des lots choisis par l'utilisateur
+        const lotCost = 50;       // Le coût minimum pour un lot
+
+        function checkBalance() {
+            alert("Votre solde est : " + userBalance + " F");
+        }
+
+        function rechargeAccount() {
+            let amount = prompt("Montant à recharger :");
+            if (amount && !isNaN(amount) && amount > 0) {
+                userBalance += parseFloat(amount);
+                alert("Recharge réussie ! Nouveau solde : " + userBalance + " F");
+            } else {
+                alert("Montant invalide.");
+            }
+        }
+
+        function withdrawFunds() {
+            let amount = prompt("Montant à retirer :");
+            if (amount && !isNaN(amount) && amount > 0 && amount <= userBalance) {
+                userBalance -= parseFloat(amount);
+                alert("Retrait réussi ! Nouveau solde : " + userBalance + " F");
+            } else {
+                alert("Montant invalide ou insuffisant.");
+            }
+        }
+
+        function addLot() {
+            if (selectedLots.length >= 5) {
+                alert("Vous ne pouvez ajouter que 5 lots maximum.");
+                return;
+            }
+
+            let chosenNumbers = document.getElementById("chosenNumbers").value.split(',').map(num => num.trim());
+            if (chosenNumbers.length !== 2 || chosenNumbers.some(num => isNaN(num) || num < 1 || num > 99)) {
+                alert("Veuillez entrer 2 numéros valides entre 1 et 99.");
+                return;
+            }
+
+            let betAmount = parseFloat(document.getElementById("lotBetAmount").value);
+            if (isNaN(betAmount) || betAmount < lotCost || betAmount > userBalance) {
+                alert("La mise doit être d'au moins 50F et ne peut pas dépasser votre solde.");
+                return;
+            }
+
+            selectedLots.push({ numbers: chosenNumbers, bet: betAmount });
+            document.getElementById("chosenNumbers").value = ''; // Réinitialiser la zone de saisie
+            document.getElementById("lotBetAmount").value = ''; // Réinitialiser la mise
+            displayLots();
+        }
+
+        function displayLots() {
+            document.getElementById("userNumbers").innerHTML = selectedLots.map((lot, index) => `
+                <div class="lot" id="lot-${index}">
+                    ${lot.numbers[0]}, ${lot.numbers[1]} - Mise: ${lot.bet} F
+                    <button class="delete-button" onclick="removeLot(${index})">X</button>
+                </div>
+            `).join('');
+        }
+
+        function removeLot(index) {
+            selectedLots.splice(index, 1);
+            displayLots();
+        }
+
+        function playGame() {
+            if (selectedLots.length === 0) {
+                alert("Ajoutez au moins un lot avant de jouer.");
+                return;
+            }
+
+            // Vérifier la mise totale
+            let totalBetAmount = selectedLots.reduce((sum, lot) => sum + lot.bet, 0);
+            if (totalBetAmount > userBalance) {
+                alert("Votre solde est insuffisant pour couvrir votre mise totale.");
+                return;
+            }
+
+            // Soustraire le montant de la mise du solde de l'utilisateur
+            userBalance -= totalBetAmount;
+
+            // Appliquer l'animation de rotation aux numéros
+            let topNumbersElement = document.getElementById("generatedNumbersTop");
+            let bottomNumbersElement = document.getElementById("generatedNumbersBottom");
+
+            topNumbersElement.innerHTML = "<div class='wheel'>...</div>";
+            bottomNumbersElement.innerHTML = "<div class='wheel'>...</div>";
+
+            // Générer 10 numéros uniques sans remise
+            function getUniqueRandomNumbers(count, min, max) {
+                let numbers = [];
+                while (numbers.length < count) {
+                    let num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    if (!numbers.includes(num)) {
+                        numbers.push(num);
+                    }
+                }
+                return numbers;
+            }
+
+            let generatedNumbers = getUniqueRandomNumbers(10, 1, 99);
+            let firstGroup = generatedNumbers.slice(0, 5);   // Les 5 premiers numéros
+            let secondGroup = generatedNumbers.slice(5, 10);  // Les 5 derniers numéros
+
+            // Attendre la fin de l'animation pour afficher les résultats
+            setTimeout(function() {
+                topNumbersElement.innerHTML = firstGroup.join(", ");
+                bottomNumbersElement.innerHTML = secondGroup.join(", ");
+                checkWinnings(firstGroup, secondGroup);
+            }, 3000);  // 3 secondes pour l'animation
+
+            // Vérifier les gains et mettre à jour les lots
+            function checkWinnings(firstGroup, secondGroup) {
+                let totalGain = 0;
+                selectedLots.forEach((lot, index) => {
+                    let lotMatch = 0;
+
+                    // Vérification de la présence dans les 2 premiers numéros du groupe gagnant
+                    if (firstGroup[0] === parseInt(lot.numbers[0]) && firstGroup[1] === parseInt(lot.numbers[1])) {
+                        lotMatch = 1000; // Multiplication par 1000 si présents dans les deux premiers numéros
+                    }
+                    // Vérification de la présence dans les 2 premiers numéros du groupe gagnant
+                    if (firstGroup[0] === parseInt(lot.numbers[1]) && firstGroup[1] === parseInt(lot.numbers[0])) {
+                        lotMatch = 1000; // Multiplication par 1000 si présents dans les deux premiers numéros
+                    }    
+                    // Vérification de la présence dans les 5 premiers numéros mais pas dans les deux premiers
+                    else if (firstGroup.includes(parseInt(lot.numbers[0])) && firstGroup.includes(parseInt(lot.numbers[1]))) {
+                        lotMatch = 100; // Multiplication par 100 si présents dans les 5 premiers mais pas dans les 2 premiers
+                    }
+                    // Vérification de la présence dans les 5 numéros seconde chance
+                    else if (secondGroup.includes(parseInt(lot.numbers[0])) && secondGroup.includes(parseInt(lot.numbers[1]))) {
+                        lotMatch = 50; // Multiplication par 50 si présents dans les 5 derniers numéros
+                    }
+                    // Vérification du positionnement correct dans les deux groupes (un dans le groupe du haut et l'autre dans le bas)
+                    else if (firstGroup.includes(parseInt(lot.numbers[0])) && secondGroup.includes(parseInt(lot.numbers[1]))) {
+                    // Vérifier si le rang est respecté
+                    let firstIndex = firstGroup.indexOf(parseInt(lot.numbers[0]));
+                    let secondIndex = secondGroup.indexOf(parseInt(lot.numbers[1]));
+
+                    if (firstIndex === secondIndex) {
+                        lotMatch = 25; // Multiplication par 25 si l'ordre des rangs est respecté
+                    } else {
+                        lotMatch = 0; // La mise est perdue si l'ordre n'est pas respecté
+                    }
+
+                }
+
+                    // Calculer le gain
+                    if (lotMatch > 0) {
+                        totalGain += lotMatch * lot.bet;
+                        document.getElementById(`lot-${index}`).classList.add('winning'); // Afficher en rouge si gagnant
+                    }
+                });
+
+                // Mettre à jour le solde
+                if (totalGain > 0) {
+                    userBalance += totalGain;
+                    document.getElementById("gameResult").innerText = "Félicitations ! Vous avez gagné " + totalGain + " F.";
+                } else {
+                    document.getElementById("gameResult").innerText = "Dommage, vous pouvez réessayer ! .";
+                }
+            }
+        }
+
+        function getRandomNumber() {
+            return Math.floor(Math.random() * 99) + 1;
+        }
+    </script>
+</body>
+</html>

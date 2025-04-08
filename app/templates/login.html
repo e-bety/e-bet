@@ -3,44 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.Bet - Inscription</title>
+    <title>E.Bet - Connexion</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Bienvenue sur E.Bet 🎰</h1>
-    <form id="registerForm">
+    <h1>Connexion à E.Bet</h1>
+    <form id="loginForm">
         <label for="username">Nom d'utilisateur</label>
         <input type="text" id="username" name="username" required>
         <label for="password">Mot de passe</label>
         <input type="password" id="password" name="password" required>
-        <label for="referrerId">ID du Parrain (facultatif)</label>
-        <input type="text" id="referrerId" name="referrerId">
-        <button type="submit">S'inscrire</button>
+        <button type="submit">Se connecter</button>
     </form>
-    <p>Déjà un compte ? <a href="/login">Connectez-vous ici</a></p>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/register', {
+                const response = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
-                    alert('Inscription réussie !');
-                    window.location.href = '/login';  // Redirection vers la page de connexion
+                    const result = await response.json();
+                    localStorage.setItem('token', result.access_token);  // Stocker le token JWT
+                    window.location.href = '/game';  // Redirection vers l'interface du jeu
                 } else {
-                    alert('Erreur lors de l\'inscription');
+                    alert('Erreur lors de la connexion');
                 }
             } catch (error) {
                 console.error(error);
-                alert('Erreur lors de l\'inscription');
+                alert('Erreur lors de la connexion');
             }
         });
     </script>

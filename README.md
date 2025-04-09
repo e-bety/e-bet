@@ -1,49 +1,46 @@
-# 🎰 E.Bet — Le jeu où chaque mise peut tout changer !
+# 🎰 E.Bet - Le jeu où chaque mise peut tout changer!
 
-Bienvenue sur **E.Bet**, une application de jeu en ligne où vous pouvez miser sur des lots de numéros et tenter de remporter des gains selon un système intelligent et ludique !
-
----
+Bienvenue sur **E.Bet**, une application de jeu en ligne innovante où chaque mise vous rapproche du jackpot !  
+Ce projet combine **FastAPI** pour le backend et **React.js** pour une interface moderne, fluide et réactive.
 
 ## 🚀 Déploiement en production
 
-🔗 Accéder à la version en ligne : [https://e-bet-1.onrender.com](https://e-bet-1.onrender.com)
+👉 [https://e-bet-1.onrender.com](https://e-bet-1.onrender.com)
 
 ---
 
-## 🛠️ Technologies utilisées
+## 📦 Technologies utilisées
 
-- **Backend** : FastAPI (Python 3.11)
-- **Base de données** : PostgreSQL 16
-- **Frontend** : React.js (PWA compatible)
-- **Déploiement** : Render
+### Backend
+- Python 🐍
+- FastAPI ⚡
+- PostgreSQL 🐘
+- SQLAlchemy
+- Jinja2 (templates HTML)
 
----
-
-## 📦 Fonctionnalités principales
-
-- 🔐 Inscription et connexion des utilisateurs
-- 💰 Dépôts et retraits avec historique
-- 🎮 Jeu de hasard avec système de mise intelligent
-- 🏆 Récompenses calculées selon plusieurs critères :
-  - Position dans les groupes de numéros
-  - Ordre respecté (bonus multiplicateur)
-- 👥 Système de parrainage multi-niveaux
-- 📊 Tableau de bord administrateur pour suivre les transactions
-- 📱 Interface mobile optimisée (PWA installable)
+### Frontend
+- React.js ⚛️
+- Tailwind CSS (bientôt)
+- Progressive Web App (PWA) 📱
 
 ---
 
-## 💻 Lancer l'application en local
+## 🔐 Fonctionnalités principales
 
-### 1. Backend (FastAPI)
+- ✅ Inscription et connexion des utilisateurs
+- 🎮 Interface de jeu interactive avec tirage aléatoire
+- 💰 Calcul automatique des gains
+- 📊 Tableau de bord administrateur (recharges, retraits)
+- 🔗 Système de parrainage à 3 niveaux
+- 📥 Historique des transactions
+- ✉️ Notifications et mises à jour
+- 🔒 Double authentification (à venir)
+- 🌗 Mode clair / sombre
 
+---
+
+## 🧪 Lancer l'application en local
+
+### Backend
 ```bash
-# Crée un environnement virtuel
-python -m venv env
-source env/bin/activate  # ou `env\Scripts\activate` sous Windows
-
-# Installer les dépendances
-pip install -r requirements.txt
-
-# Lancer le backend
 uvicorn app.main:app --reload

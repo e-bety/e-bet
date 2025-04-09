@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.Bet - Connexion</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Connexion à E.Bet 🔐</h1>
+    <h1>Connexion à E.Bet</h1>
     <form id="loginForm">
         <label for="username">Nom d'utilisateur</label>
         <input type="text" id="username" name="username" required>
@@ -15,7 +15,6 @@
         <input type="password" id="password" name="password" required>
         <button type="submit">Se connecter</button>
     </form>
-    <p>Pas encore de compte ? <a href="/register">Inscrivez-vous ici</a></p>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -24,17 +23,18 @@
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/login', {
+                const response = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
-                    alert('Connexion réussie !');
-                    window.location.href = '/game';  // Redirection vers le jeu
+                    const result = await response.json();
+                    localStorage.setItem('token', result.access_token);  // Stocker le token JWT
+                    window.location.href = '/game';  // Redirection vers l'interface du jeu
                 } else {
-                    alert('Nom d’utilisateur ou mot de passe incorrect');
+                    alert('Erreur lors de la connexion');
                 }
             } catch (error) {
                 console.error(error);

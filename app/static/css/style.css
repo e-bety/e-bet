@@ -68,14 +68,14 @@ a:hover {
 }
 
 #password {
-    padding-right: 40px; /* Laisser de l’espace pour le bouton */
+    padding-right: 40px; /* Espace pour le bouton */
 }
 
 #togglePassword {
     position: absolute;
-    right: 10px;
+    right: 10px; /* Placer à 10px de la droite */
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%); /* Centrer verticalement */
     background: none;
     border: none;
     font-size: 18px;

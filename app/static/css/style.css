@@ -63,4 +63,28 @@ a:hover {
     text-decoration: underline;
 }
 
+.password-wrapper {
+    position: relative;
+}
+
+#password {
+    padding-right: 40px; /* Laisser de l’espace pour le bouton */
+}
+
+#togglePassword {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #555;
+}
+
+#togglePassword:hover {
+    color: #4CAF50;
+}
+
 

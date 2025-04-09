@@ -11,8 +11,13 @@
     <form id="loginForm">
         <label for="username">Nom d'utilisateur</label>
         <input type="text" id="username" name="username" required>
+        
         <label for="password">Mot de passe</label>
-        <input type="password" id="password" name="password" required>
+        <div class="password-wrapper">
+            <input type="password" id="password" name="password" required>
+            <button type="button" id="togglePassword">👁️</button>
+        </div>
+        
         <button type="submit">Se connecter</button>
     </form>
     <p>Pas encore de compte ? <a href="/register">Inscrivez-vous ici</a></p>
@@ -40,6 +45,13 @@
                 console.error(error);
                 alert('Erreur lors de la connexion');
             }
+        });
+
+        // Toggle visibility for password field
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('password');
+            const type = passwordField.type === 'password' ? 'text' : 'password';
+            passwordField.type = type;
         });
     </script>
 </body>

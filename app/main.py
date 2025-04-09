@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware  # Ajout du middleware CORS
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import HTTPException
+import logging
 from app.schemas import TransactionRequest, RegisterRequest, BetRequest
 from sqlalchemy.orm import Session
 from app.database import get_db, SessionLocal
@@ -114,45 +116,47 @@ def jouer(user_id: int, bet_amount: int, db: Session = Depends(get_db)):
         "nouveau_solde": current_user.balance
     }
 
+# Configure the logger
+logging.basicConfig(level=logging.DEBUG)
+
 @app.post("/register")
 def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.username == user_data.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
+    try:
+        # Vérifier si l'utilisateur existe déjà
+        existing_user = db.query(User).filter(User.username == user_data.username).first()
+        if existing_user:
+            logging.error(f"Nom d'utilisateur déjà pris: {user_data.username}")
+            raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
 
-    referrer = None
-    if user_data.referrer_id:
-        referrer = db.query(User).filter(User.id == user_data.referrer_id).first()
-        if not referrer:
-            raise HTTPException(status_code=400, detail="Parrain invalide")
+        # Vérification du parrain
+        referrer = None
+        if user_data.referrer_id:
+            referrer = db.query(User).filter(User.id == user_data.referrer_id).first()
+            if not referrer:
+                logging.error(f"Parrain invalide: {user_data.referrer_id}")
+                raise HTTPException(status_code=400, detail="Parrain invalide")
 
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        username=user_data.username,
-        hashed_password=hashed_password,
-        balance=decimal.Decimal("0.00"),
-        referrer_id=user_data.referrer_id
-    )
+        hashed_password = get_password_hash(user_data.password)
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        # Créer un nouvel utilisateur
+        new_user = User(
+            username=user_data.username,
+            hashed_password=hashed_password,
+            balance=decimal.Decimal("0.00"),
+            referrer_id=user_data.referrer_id
+        )
 
-    return {"message": "Compte créé avec succès !"}
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-def create_payment(amount: float, phone_number: str):
-    url = "https://api.cinetpay.com/v1/payment"
-    data = {
-        "amount": amount,
-        "phone_number": phone_number,
-    }
-    response = requests.post(url, data=data)
+        # Redirection après inscription réussie
+        return RedirectResponse(url="/login", status_code=303)
 
-    if response.status_code == 200:
-        return response.json().get('payment_url')
-    else:
-        raise Exception("Erreur lors de la création du paiement")
-
+    except Exception as e:
+        logging.error(f"Erreur lors de l'inscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'inscription")
+        
 # 🎮 Mode démo pour tester le jeu
 @app.post("/play-demo")
 def play_demo(bets: List[BetRequest], db: Session = Depends(get_db)):

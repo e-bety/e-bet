@@ -1,3 +1,9 @@
+@media (max-width: 600px) {
+    .logo {
+        max-width: 120px;  /* Réduit la taille sur les petits écrans */
+    }
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -41,8 +47,26 @@ a {
     text-decoration: none;
 }
 
-@media (max-width: 600px) {
-    .logo {
-        max-width: 120px;  /* Réduit la taille sur les petits écrans */
-    }
+.password-wrapper {
+    position: relative;
+}
+
+#password {
+    padding-right: 40px; /* Laisser de l’espace pour le bouton */
+}
+
+#togglePassword {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #555;
+}
+
+#togglePassword:hover {
+    color: #4CAF50;
 }

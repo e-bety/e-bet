@@ -1,48 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.Bet - Inscription</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <h1>Bienvenue sur E.Bet 🎰</h1>
-    <form id="registerForm">
-        <label for="username">Nom d'utilisateur</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Mot de passe</label>
-        <input type="password" id="password" name="password" required>
-        <label for="referrerId">ID du Parrain (facultatif)</label>
-        <input type="text" id="referrerId" name="referrerId">
-        <button type="submit">S'inscrire</button>
-    </form>
-    <p>Déjà un compte ? <a href="/login">Connectez-vous ici</a></p>
+<form method="post" action="/register">
+    <label for="username">Nom d'utilisateur:</label>
+    <input type="text" id="username" name="username" required>
 
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
 
-            try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+    <label for="password">Mot de passe:</label>
+    <input type="password" id="password" name="password" required>
 
-                if (response.ok) {
-                    alert('Inscription réussie !');
-                    window.location.href = '/login';  // Redirection vers la page de connexion
-                } else {
-                    alert('Erreur lors de l\'inscription');
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Erreur lors de l\'inscription');
-            }
-        });
-    </script>
-</body>
-</html>
+    <label for="referrer_id">ID du parrain (facultatif):</label>
+    <input type="number" id="referrer_id" name="referrer_id">
+
+    <button type="submit">S'inscrire</button>
+</form>

@@ -1,10 +1,11 @@
-from fastapi import FastAPI, APIRouter, Request, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, APIRouter, Response, Request, Depends, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware  # Ajout du middleware CORS
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 from app.schemas import TransactionRequest, RegisterRequest, BetRequest
 from sqlalchemy.orm import Session
@@ -33,6 +34,17 @@ from passlib.context import CryptContext
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI()
+
+# Middleware personnalisé pour les en-têtes de sécurité et de cache
+class CustomHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+# Ajout du middleware à l'application FastAPI
+app.add_middleware(CustomHeadersMiddleware)
 
 # Assure-toi que les routes sont bien inclues dans l'application
 app.include_router(auth_router, prefix="/auth")
@@ -119,14 +131,21 @@ def jouer(user_id: int, bet_amount: int, db: Session = Depends(get_db)):
 # Configure the logger
 logging.basicConfig(level=logging.DEBUG)
 
+# ✅ Route d'inscription
 @app.post("/register")
 def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
     try:
-        # Vérifier si l'utilisateur existe déjà
+        # Vérifier si le nom d'utilisateur est déjà pris
         existing_user = db.query(User).filter(User.username == user_data.username).first()
         if existing_user:
             logging.error(f"Nom d'utilisateur déjà pris: {user_data.username}")
             raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
+
+        # Vérifier si l'email est déjà utilisé
+        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        if existing_email:
+            logging.error(f"Email déjà utilisé: {user_data.email}")
+            raise HTTPException(status_code=400, detail="Email déjà utilisé")
 
         # Vérification du parrain
         referrer = None
@@ -141,6 +160,7 @@ def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
         # Créer un nouvel utilisateur
         new_user = User(
             username=user_data.username,
+            email=user_data.email,  # Ajout de l'email ici
             hashed_password=hashed_password,
             balance=decimal.Decimal("0.00"),
             referrer_id=user_data.referrer_id
@@ -150,13 +170,12 @@ def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(new_user)
 
-        # Redirection après inscription réussie
         return RedirectResponse(url="/login", status_code=303)
 
     except Exception as e:
         logging.error(f"Erreur lors de l'inscription: {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur lors de l'inscription")
-        
+    
 # 🎮 Mode démo pour tester le jeu
 @app.post("/play-demo")
 def play_demo(bets: List[BetRequest], db: Session = Depends(get_db)):

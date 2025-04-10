@@ -4,9 +4,13 @@ from typing import Optional
 # ✅ Schéma pour l'inscription
 class RegisterRequest(BaseModel):
     username: str
+    email: str  # Ajout du champ email
     password: str
-    referrer_id: Optional[int] = None  # ID du parrain (facultatif)
+    referrer_id: int = None  # Le parrain est optionnel
 
+    class Config:
+        orm_mode = True
+        
 # ✅ Schéma pour la connexion
 class LoginRequest(BaseModel):
     username: str

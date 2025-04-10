@@ -8,7 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     balance = Column(Numeric, default=0.0)  # Solde de l'utilisateur
     referer_id = Column(Integer, ForeignKey('users.id'))  # Si l'utilisateur a un parrain

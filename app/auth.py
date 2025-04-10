@@ -1,8 +1,11 @@
 import os
+import decimal
+import logging
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
@@ -46,27 +49,58 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 # ✅ Schéma Pydantic pour l'inscription
-class UserCreate(BaseModel):
+class RegisterRequest(BaseModel):
     username: str
+    email: str
     password: str
+    referrer_id: Union[int, None] = None
 
-# ✅ Route d'inscription avec vérification du nom d'utilisateur
+# ✅ Route d'inscription
 @router.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.username == user.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
+def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
+    try:
+        # Vérifier si le nom d'utilisateur est déjà pris
+        existing_user = db.query(User).filter(User.username == user_data.username).first()
+        if existing_user:
+            logging.error(f"Nom d'utilisateur déjà pris: {user_data.username}")
+            raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
 
-    hashed_password = get_password_hash(user.password)
-    new_user = User(username=user.username, hashed_password=hashed_password, balance=0)
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)  # 🔹 Assure que les données sont bien enregistrées
+        # Vérifier si l'email est déjà utilisé
+        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        if existing_email:
+            logging.error(f"Email déjà utilisé: {user_data.email}")
+            raise HTTPException(status_code=400, detail="Email déjà utilisé")
 
-    return {"message": "Utilisateur créé avec succès !"}
+        # Vérification du parrain
+        referrer = None
+        if user_data.referrer_id:
+            referrer = db.query(User).filter(User.id == user_data.referrer_id).first()
+            if not referrer:
+                logging.error(f"Parrain invalide: {user_data.referrer_id}")
+                raise HTTPException(status_code=400, detail="Parrain invalide")
 
-# ✅ Route de connexion avec génération de token JWT
+        hashed_password = get_password_hash(user_data.password)
+
+        # Créer un nouvel utilisateur
+        new_user = User(
+            username=user_data.username,
+            email=user_data.email,
+            hashed_password=hashed_password,
+            balance=decimal.Decimal("0.00"),
+            referrer_id=user_data.referrer_id
+        )
+
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        return RedirectResponse(url="/login", status_code=303)
+
+    except Exception as e:
+        logging.error(f"Erreur lors de l'inscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'inscription")
+
+# ✅ Route de connexion
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == form_data.username).first()
@@ -85,7 +119,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     return {"access_token": access_token, "token_type": "bearer"}
 
-# ✅ Récupération de l'utilisateur actuel à partir du token JWT
+# ✅ Récupération de l'utilisateur actuel via le token JWT
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -107,7 +141,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     return user
 
-# Route pour obtenir les infos de l'utilisateur connecté
+# ✅ Route pour récupérer l'utilisateur connecté
 @router.get("/me")
 def read_users_me(current_user: User = Depends(get_current_user)):
-    return {"username": current_user.username, "balance": current_user.balance}
+    return {
+        "username": current_user.username,
+        "email": current_user.email,
+        "balance": current_user.balance
+    }

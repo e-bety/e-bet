@@ -132,7 +132,7 @@ def jouer(user_id: int, bet_amount: int, db: Session = Depends(get_db)):
 logging.basicConfig(level=logging.DEBUG)
 
 # ✅ Route d'inscription
-@router.post("/register")
+@app.post("/register")
 def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
     try:
         # Vérifier si le nom d'utilisateur est déjà pris
@@ -160,7 +160,7 @@ def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
         # Créer un nouvel utilisateur
         new_user = User(
             username=user_data.username,
-            email=user_data.email,  # Assurez-vous que l'email est bien inclus
+            email=user_data.email,  # Ajout de l'email ici
             hashed_password=hashed_password,
             balance=decimal.Decimal("0.00"),
             referrer_id=user_data.referrer_id
@@ -174,7 +174,7 @@ def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
 
     except Exception as e:
         logging.error(f"Erreur lors de l'inscription: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'inscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'inscription")
     
 # 🎮 Mode démo pour tester le jeu
 @app.post("/play-demo")

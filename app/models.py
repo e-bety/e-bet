@@ -11,10 +11,11 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     balance = Column(Numeric, default=0.0)  # Solde de l'utilisateur
-    referer_id = Column(Integer, ForeignKey('users.id'))  # Si l'utilisateur a un parrain
+    referrer_id = Column(Integer, ForeignKey('users.id'))  # Si l'utilisateur a un parrain
     total_winnings = Column(Numeric, default=0.0)  # Gagné total
     referral_earnings = Column(Numeric, default=0.0)  # Gains de parrainage
     recharge_requests = relationship("RechargeRequest", back_populates="user")
+    referral_requests = relationship("RechargeRequest", back_populates="referrer", foreign_keys="[RechargeRequest.referrer_id]")
     
     # Relations avec le parrain et les filleuls
     referrals = relationship("User", remote_side=[id], back_populates="referrer")
